@@ -1,0 +1,192 @@
+# Bot configuration
+bot:
+  # Commands that can be used in issues and PRs
+  commands:
+    - name: label
+      description: "Add a label to the issue/PR"
+      usage: "/label <label-name>"
+    - name: unlabel 
+      description: "Remove a label from the issue/PR"
+      usage: "/unlabel <label-name>"
+    - name: lgtm
+      description: "Approve the PR"
+      usage: "LGTM"
+
+  # Component configuration
+  components:
+    paths:
+      "ansible/": "ansible"
+      "docs/": "documentation"
+      "tests/": "testing"
+
+  # Maintainers configuration
+  maintainers:
+    ansible:
+      - username1
+      - username2
+    documentation:
+      - username3
+    testing:
+      - username4
+
+  # Labels configuration
+  labels:
+    # States
+    docs:
+      color: "docs"
+      description: "This issue/PR relates to documentation."
+    docsite:
+      color: "docs"
+      description: "This issue/PR relates to documentation site."
+    needs_review:
+      color: "8aea94"
+      description: "This PR is ready for review."
+    needs_triage:
+      color: "8aea94"
+      description: "This issue/PR needs to be triaged."
+    ci_verified:
+      color: "b60205"
+      description: "Push fixes to PR branch to re-run CI."
+    needs_ci:
+      color: "b60205"
+      description: "This PR requires CI testing to be performed. Please close and re-open this PR to trigger CI."
+    merge_commit:
+      color: "d93f0b"
+      description: "This PR contains at least one merge commit. Please resolve!"
+    needs_rebase:
+      color: "d93f0b"
+      description: "This PR needs to be rebased. Please rebase and push to the PR branch."
+    needs_info:
+      color: "d93f0b"
+      description: "This issue requires further information. Please answer any outstanding questions."
+    needs_revision:
+      color: "d93f0b"
+      description: "This PR fails CI tests or a maintainer has requested a review/revision of the PR."
+    needs_template:
+      color: "d93f0b"
+      description: "This issue/PR has an incomplete description. Please fill in the proposed template correctly."
+    stale_ci:
+      color: "d93f0b"
+      description: ""
+    waiting_on_contributor:
+      color: "d93f0b"
+      description: "Needs help. Feel free to engage to get things unblocked."
+    new_inventory:
+      color: "c2e0c6"
+      description: ""
+    new_plugin:
+      color: "c2e0c6"
+      description: ""
+    new_module:
+      color: "c2e0c6"
+      description: ""
+    new_module_directory:
+      color: "c2e0c6"
+      description: ""
+    new_contributor:
+      color: "8aea94"
+      description: ""
+    bug:
+      color: "fbca04"
+      description: "This issue/PR relates to a bug."
+    feature:
+      color: "006b75"
+      description: "This issue/PR relates to a feature request."
+    has_issue:
+      color: "ededed"
+      description: ""
+    has_pr:
+      color: "ededed"
+      description: ""
+    owner_pr:
+      color: "0e8a16"
+      description: ""
+    pr_day:
+      color: "0e8a16"
+      description: "Has been reviewed during a PR review Day."
+    
+    # Components
+    action:
+      color: "71bc1c"
+      description: ""
+    backport-10:
+      color: "71bc1c"
+      description: ""
+    become:
+      color: "71bc1c"
+      description: ""
+    cache:
+      color: "71bc1c"
+      description: ""
+    callback:
+      color: "71bc1c"
+      description: ""
+    cliconf:
+      color: "71bc1c"
+      description: ""
+    connection:
+      color: "71bc1c"
+      description: ""
+    docs_fragments:
+      color: "71bc1c"
+      description: ""
+    filter:
+      color: "71bc1c"
+      description: ""
+    github:
+      color: "71bc1c"
+      description: ""
+    github_action:
+      color: "71bc1c"
+      description: ""
+    httpapi:
+      color: "71bc1c"
+      description: ""
+    integration:
+      color: "71bc1c"
+      description: ""
+    inventory:
+      color: "71bc1c"
+      description: ""
+    lookup:
+      color: "71bc1c"
+      description: ""
+    plugin:
+      color: "71bc1c"
+      description: ""
+    module:
+      color: "71bc1c"
+      description: ""
+    module_utils:
+      color: "71bc1c"
+      description: ""
+    netconf:
+      color: "71bc1c"
+      description: ""
+    roles:
+      color: "71bc1c"
+      description: ""
+    shell:
+      color: "71bc1c"
+      description: ""
+    strategy:
+      color: "71bc1c"
+      description: ""
+    success:
+      color: "0e8a16"
+      description: ""
+    terminal:
+      color: "71bc1c"
+      description: ""
+    testing:
+      color: "71bc1c"
+      description: ""
+    tests:
+      color: "71bc1c"
+      description: ""
+    units:
+      color: "71bc1c"
+      description: ""
+    vars:
+      color: "71bc1c"
+      description: ""

@@ -1,0 +1,54 @@
+{
+  "name": "ans2bot",
+  "version": "1.0.0",
+  "description": "GitHub bot for managing Ansible Collections",
+  "main": "lib/index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "build": "npx tsc",
+    "start": "node lib/server.js",
+    "dev": "nodemon --exec 'npm run build && npm start'",
+    "test": "jest",
+    "lint": "eslint src/**/*.ts",
+    "prepare": "npm run build",
+    "pretest": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/3A2DEV/ANS2BOT.git"
+  },
+  "keywords": [
+    "probot",
+    "github",
+    "bot",
+    "ansible"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@octokit/rest": "^21.1.1",
+    "@octokit/webhooks": "^13.8.0",
+    "dotenv": "^16.4.7",
+    "js-yaml": "^4.1.0",
+    "lru-cache": "^10.0.0",
+    "probot": "^13.4.5"
+  },
+  "devDependencies": {
+    "@octokit/webhooks-types": "^7.6.1",
+    "@types/jest": "^29.5.14",
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^20.11.0",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "eslint": "^8.56.0",
+    "jest": "^29.7.0",
+    "nodemon": "^3.1.9",
+    "ts-jest": "^29.1.1",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=16"
+  }
+}
