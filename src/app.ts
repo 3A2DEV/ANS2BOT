@@ -1,8 +1,11 @@
 import { Probot } from "probot";
+import { Context } from 'probot';
+import { PullRequestReviewEvent } from '@octokit/webhooks-types';
 import { handleIssueComment } from "./handlers/issueCommentHandler";
 import { handlePullRequest } from "./handlers/pullRequestHandler";
 import { handleIssues } from "./handlers/issuesHandler";
 import { checkWorkflowRuns } from "./utils/checkParser";
+import { handleLgtmCommand } from './commands/lgtmCommand';
 
 export = (app: Probot) => {
   // Handle issue comments (for commands)
@@ -147,6 +150,41 @@ export = (app: Probot) => {
       console.log('----------------------------------------');
     } catch (error) {
       console.error('Error in event handler:', error);
+    }
+  });
+
+  // Handle review comments
+  app.on("pull_request_review", async (context: Context<"pull_request_review">) => {
+    const payload = context.payload as PullRequestReviewEvent;
+    
+    // Log più dettagliato per debug
+    console.log('Received review event with details:', {
+      event: context.name,
+      action: payload.action,
+      state: payload.review.state,
+      body: payload.review.body,
+      user: payload.review.user.login,
+      prNumber: payload.pull_request.number
+    });
+
+    // Verifica tutti i requisiti necessari
+    if (
+      payload.action === "submitted" && 
+      payload.review.body?.trim().toUpperCase() === 'LGTM'
+    ) {
+      console.log('Valid LGTM review detected, processing...');
+      try {
+        await handleLgtmCommand(context, true);
+        console.log('LGTM command processed successfully');
+      } catch (error) {
+        console.error('Error processing LGTM command:', error);
+      }
+    } else {
+      console.log('Review did not match LGTM criteria:', {
+        action: payload.action,
+        state: payload.review.state,
+        body: payload.review.body
+      });
     }
   });
 };

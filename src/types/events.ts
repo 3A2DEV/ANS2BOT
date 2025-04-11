@@ -27,3 +27,17 @@ export type IssueOpenedPayload = IssuesOpenedEvent & {
     body?: string;
   };
 };
+
+export interface PullRequestReviewPayload {
+  action: string;
+  review: {
+    user: {
+      login: string;
+    };
+    body?: string;
+    state: string;
+  };
+  pull_request: {
+    number: number;
+  };
+}

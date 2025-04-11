@@ -2,6 +2,7 @@ import { Context } from 'probot';
 import { handleLabelCommand } from "../commands/labelCommand";
 import { handleApprovalCommand } from "../commands/approvalCommand";
 import { handleComponentCommand } from "../commands/componentCommand";
+import { handleLgtmCommand } from "../commands/lgtmCommand";
 import { IssueCommentPayload } from '../types/events';
 
 export async function handleIssueComment(context: Context<'issue_comment.created'>): Promise<void> {
@@ -13,6 +14,8 @@ export async function handleIssueComment(context: Context<'issue_comment.created
   }
 
   // Gestione dei comandi
+  const commentLower = comment.toLowerCase();
+  
   if (comment.startsWith('/')) {
     if (comment.startsWith('/label')) {
       await handleLabelCommand(context);
@@ -20,10 +23,12 @@ export async function handleIssueComment(context: Context<'issue_comment.created
       await handleLabelCommand(context, true);
     } else if (comment.startsWith('/component')) {
       await handleComponentCommand(context);
+    } else if (commentLower === '/lgtm') {
+      await handleLgtmCommand(context);
     }
     return;
-  } else if (comment.toLowerCase() === 'lgtm') {
-    await handleApprovalCommand(context);
+  } else if (commentLower === 'lgtm' || comment === 'LGTM') { // Aggiungi controllo per LGTM maiuscolo
+    await handleLgtmCommand(context);
     return;
   }
 
