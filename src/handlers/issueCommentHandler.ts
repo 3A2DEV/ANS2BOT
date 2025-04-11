@@ -13,7 +13,7 @@ export async function handleIssueComment(context: Context<'issue_comment.created
     return;
   }
 
-  // Gestione dei comandi
+  // Handle commands
   const commentLower = comment.toLowerCase();
   
   if (comment.startsWith('/')) {
@@ -27,19 +27,19 @@ export async function handleIssueComment(context: Context<'issue_comment.created
       await handleLgtmCommand(context);
     }
     return;
-  } else if (commentLower === 'lgtm' || comment === 'LGTM') { // Aggiungi controllo per LGTM maiuscolo
+  } else if (commentLower === 'lgtm' || comment === 'LGTM') { // Add check for uppercase LGTM
     await handleLgtmCommand(context);
     return;
   }
 
   try {
-    // Recupera tutti i commenti dell'issue
+    // Get all issue comments
     const { data: comments } = await context.octokit.issues.listComments({
       ...context.repo(),
       issue_number: payload.issue.number,
     });
 
-    // Filtra solo i commenti degli utenti (non bot) che non sono comandi
+    // Filter only user comments (not bot) that are not commands
     const userNonCommandComments = comments.filter(c => 
       c.user?.type === 'User' && 
       c.user?.login !== 'ans2bot' &&
@@ -47,11 +47,11 @@ export async function handleIssueComment(context: Context<'issue_comment.created
       c.body?.toLowerCase() !== 'lgtm'
     );
 
-    // Se questo è il primo commento non-comando di un utente
+    // If this is the first non-command user comment
     if (userNonCommandComments.length === 1 && 
         userNonCommandComments[0].id === payload.comment.id) {
       
-      // Verifica se l'issue ha il label needs_triage
+      // Check if the issue has the needs_triage label
       const { data: issue } = await context.octokit.issues.get({
         ...context.repo(),
         issue_number: payload.issue.number,
@@ -64,13 +64,13 @@ export async function handleIssueComment(context: Context<'issue_comment.created
       );
 
       if (hasNeedsTriage) {
-        // Rimuovi il label needs_triage
+        // Remove needs_triage label
         await context.octokit.issues.removeLabel({
           ...context.repo(),
           issue_number: payload.issue.number,
           name: 'needs_triage'
         });
-        console.log(`Rimosso label needs_triage dall'issue ${payload.issue.number}`);
+        console.log(`Removed needs_triage label from issue ${payload.issue.number}`);
       }
     }
   } catch (error) {

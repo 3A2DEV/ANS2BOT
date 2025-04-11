@@ -7,26 +7,26 @@ export async function handleComponentCommand(context: Context<"issue_comment.cre
   const comment = payload.comment.body;
   const issueNumber = payload.issue.number;
 
-  // Estrai il percorso del componente dal comando
+  // Extract component path from command
   const componentPath = comment.split(' ')[1]?.trim();
 
   if (!componentPath) {
     await context.octokit.issues.createComment({
       ...context.repo(),
       issue_number: issueNumber,
-      body: '⚠️ Per favore specifica il percorso del componente.'
+      body: '⚠️ Please specify the component path.'
     });
     return;
   }
 
   try {
-    // Recupera tutti i commenti dell'issue
+    // Get all issue comments
     const { data: comments } = await context.octokit.issues.listComments({
       ...context.repo(),
       issue_number: issueNumber
     });
 
-    // Trova e rimuovi il commento precedente del componente
+    // Find and remove previous component comment
     const componentComment = comments.find(comment => 
       comment.body?.startsWith('Files identified in the description:')
     );
@@ -38,7 +38,7 @@ export async function handleComponentCommand(context: Context<"issue_comment.cre
       });
     }
 
-    // Determina i label basati sul percorso
+    // Determine labels based on path
     const labels: string[] = [];
     if (componentPath.startsWith('plugins/modules/')) {
       labels.push('plugin', 'module');
@@ -46,7 +46,7 @@ export async function handleComponentCommand(context: Context<"issue_comment.cre
       labels.push('docs', 'docsite');
     }
 
-    // Rimuovi i label precedenti se presenti
+    // Remove previous labels if present
     const oldLabels = ['plugin', 'module', 'docs', 'docsite'];
     for (const label of oldLabels) {
       try {
@@ -56,11 +56,11 @@ export async function handleComponentCommand(context: Context<"issue_comment.cre
           name: label
         });
       } catch (error) {
-        // Ignora errori se il label non esiste
+        // Ignore errors if label doesn't exist
       }
     }
 
-    // Aggiungi i nuovi label
+    // Add new labels
     if (labels.length > 0) {
       await context.octokit.issues.addLabels({
         ...context.repo(),
@@ -69,11 +69,11 @@ export async function handleComponentCommand(context: Context<"issue_comment.cre
       });
     }
 
-    // Aggiungi il nuovo commento con i maintainer
+    // Add new comment with maintainers
     const repoUrl = `https://github.com/${context.repo().owner}/${context.repo().repo}`;
     const fileUrl = `${repoUrl}/blob/main/${componentPath}`;
     
-    // Trova i maintainer del componente
+    // Find component maintainers
     const maintainers = await findComponentMaintainer(
       context.octokit,
       context.repo().owner,
@@ -81,7 +81,7 @@ export async function handleComponentCommand(context: Context<"issue_comment.cre
       componentPath
     );
 
-    // Filtra il maintainer se è lo stesso utente che ha usato il comando
+    // Filter maintainer if it's the same user who used the command
     const commandAuthor = payload.comment.user.login;
     const filteredMaintainers = maintainers.filter(m => m !== commandAuthor);
     
@@ -107,7 +107,7 @@ export async function handleComponentCommand(context: Context<"issue_comment.cre
     await context.octokit.issues.createComment({
       ...context.repo(),
       issue_number: issueNumber,
-      body: `❌ Errore durante l'aggiornamento del componente: ${error.message}`
+      body: `❌ Error updating component: ${error.message}`
     });
   }
 }

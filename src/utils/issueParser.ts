@@ -4,7 +4,7 @@ export interface IssueTemplate {
 }
 
 export function getIssueTemplate(body: string): IssueTemplate | null {
-  // Cerca il tipo di issue nel dropdown "Issue Type"
+  // Look for issue type in the "Issue Type" dropdown
   const typeRegex = /###?\s*Issue Type\s*\n+([^\n#]+)/i;
   const match = body.match(typeRegex);
   
@@ -42,7 +42,7 @@ export async function findComponentFile(
   component: string
 ): Promise<ComponentInfo | null> {
   try {
-    // Definisci i percorsi da cercare con le relative estensioni e label
+    // Define paths to search with their extensions and labels
     const pathConfigs = [
       {
         paths: [`plugins/modules/${component}.py`],

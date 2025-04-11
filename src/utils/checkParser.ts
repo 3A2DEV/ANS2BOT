@@ -33,7 +33,7 @@ export async function checkWorkflowRuns(
   try {
     console.log(`Checking workflow runs for PR #${prNumber}`);
 
-    // 1. Recupera l'ultimo commit della PR
+    // 1. Get the latest PR commit
     const { data: pr } = await octokit.pulls.get({
       owner,
       repo,
@@ -43,9 +43,9 @@ export async function checkWorkflowRuns(
     const sha = pr.head.sha;
     console.log(`Checking commit: ${sha}`);
 
-    // 2. Usa il metodo corretto per recuperare i workflow runs
+    // 2. Use correct method to get workflow runs
     try {
-      // Prima ottieni tutti i workflow
+      // First get all workflows
       const { data: workflows } = await octokit.rest.actions.listRepoWorkflows({
         owner,
         repo
@@ -55,9 +55,9 @@ export async function checkWorkflowRuns(
       
       const failedJobs: { workflow: string; job: string; errors: string[] }[] = [];
 
-      // Per ogni workflow, controlla i runs
+      // For each workflow, check the runs
       for (const workflow of workflows.workflows) {
-        // Processa solo il workflow ansible-test.yml
+        // Process only ansible-test.yml workflow
         if (workflow.name !== 'CI' && !workflow.path.includes('ansible-test.yml')) {
           continue;
         }
@@ -72,17 +72,17 @@ export async function checkWorkflowRuns(
 
         console.log(`Found ${runs.total_count} runs for workflow ${workflow.name}`);
 
-        // Controlla ogni run fallito
+        // Check each failed run
         for (const run of runs.workflow_runs || []) {
           if (run.conclusion === 'failure') {
-            // Recupera i jobs per questo run
+            // Get jobs for this run
             const { data: jobsData } = await octokit.rest.actions.listJobsForWorkflowRun({
               owner,
               repo,
               run_id: run.id
             });
 
-            // Analizza solo i job Sanity, Units e Integration
+            // Analyze only Sanity, Units and Integration jobs
             for (const job of jobsData.jobs) {
               if (
                 job.conclusion === 'failure' && 
@@ -97,7 +97,7 @@ export async function checkWorkflowRuns(
 
                   if (errors.length > 0) {
                     failedJobs.push({
-                      workflow: workflow.name, // Usa il nome effettivo del workflow invece di hardcodare 'ansible-test'
+                      workflow: workflow.name, // Use actual workflow name instead of hardcoding 'ansible-test'
                       job: job.name,
                       errors
                     });
@@ -111,9 +111,9 @@ export async function checkWorkflowRuns(
         }
       }
 
-      // 4. Se ci sono job falliti, crea il commento
+      // 4. If there are failed jobs, create comment
       if (failedJobs.length > 0) {
-        // Rimuovi i commenti precedenti
+        // Remove previous comments
         const { data: comments } = await octokit.issues.listComments({
           owner,
           repo,
@@ -133,7 +133,7 @@ export async function checkWorkflowRuns(
           });
         }
 
-        // Crea il nuovo commento
+        // Create new comment
         const commentBody = createErrorComment(pr.user.login, failedJobs);
         await octokit.issues.createComment({
           owner,
@@ -163,7 +163,7 @@ async function getJobLogs(octokit: any, owner: string, repo: string, jobId: numb
     return data;
   } catch (error) {
     console.error('Error getting job logs:', error);
-    throw error; // Propaga l'errore per una migliore gestione
+    throw error; // Propagate error for better handling
   }
 }
 
@@ -176,7 +176,7 @@ function findErrors(logs: string): string[] {
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i].trim();
 
-    // Gestione speciale per Python traceback
+    // Special handling for Python traceback
     if (line.includes('Traceback (most recent call last):')) {
       inPythonTraceback = true;
       currentError = [line];
@@ -193,7 +193,7 @@ function findErrors(logs: string): string[] {
       continue;
     }
 
-    // Controllo per errori singola linea
+    // Check for single line errors
     for (const pattern of allPatterns) {
       if (pattern.pattern.test(line)) {
         errors.push(line);

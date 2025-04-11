@@ -8,14 +8,14 @@ export async function handlePullRequest(context: Context<"pull_request.opened" |
   const prNumber = payload.pull_request.number;
 
   try {
-    // 1. Aggiungi il label needs_triage
+    // 1. Add needs_triage label
     await context.octokit.issues.addLabels({
       ...context.repo(),
       issue_number: prNumber,
       labels: ['needs_triage']
     });
 
-    // 2. Ottieni e aggiungi il label basato sul template
+    // 2. Get and add label based on template
     if (payload.pull_request.body) {
       const template = getPullRequestType(payload.pull_request.body);
       if (template) {
@@ -27,7 +27,7 @@ export async function handlePullRequest(context: Context<"pull_request.opened" |
       }
     }
 
-    // 3. Ottieni e aggiungi i label basati sui file modificati
+    // 3. Get and add labels based on modified files
     const fileLabels = await getFileLabels(
       context.octokit,
       context.repo().owner,
@@ -51,7 +51,7 @@ export async function handlePullRequest(context: Context<"pull_request.opened" |
 
     const maintainers = new Set<string>();
     
-    // Controlla ogni file modificato
+    // Check each modified file
     for (const file of files) {
       const fileMaintainers = await findComponentMaintainer(
         context.octokit,
@@ -63,12 +63,12 @@ export async function handlePullRequest(context: Context<"pull_request.opened" |
       fileMaintainers.forEach(maintainer => maintainers.add(maintainer));
     }
 
-    // Filtra il maintainer se è lo stesso utente che ha aperto la PR
+    // Filter maintainer if it's the same user who opened the PR
     const prAuthor = payload.pull_request.user.login;
     const filteredMaintainers = Array.from(maintainers).filter(m => m !== prAuthor);
 
     if (filteredMaintainers.length > 0) {
-      // Prima rimuovi eventuali commenti precedenti del bot con menzioni ai maintainer
+      // First remove any previous bot comments mentioning maintainers
       const { data: comments } = await context.octokit.issues.listComments({
         ...context.repo(),
         issue_number: prNumber
@@ -79,7 +79,7 @@ export async function handlePullRequest(context: Context<"pull_request.opened" |
         comment.body?.startsWith('cc @')
       );
 
-      // Rimuovi i commenti precedenti
+      // Remove previous comments
       for (const comment of botComments) {
         await context.octokit.issues.deleteComment({
           ...context.repo(),
@@ -87,7 +87,7 @@ export async function handlePullRequest(context: Context<"pull_request.opened" |
         });
       }
 
-      // Aggiungi il nuovo commento con i maintainer
+      // Add new comment with maintainers
       await context.octokit.issues.createComment({
         ...context.repo(),
         issue_number: prNumber,

@@ -46,14 +46,14 @@ export async function getFileLabels(
   const labels = new Set<string>();
 
   try {
-    // Ottieni la lista dei file modificati nella PR
+    // Get list of modified files in PR
     const { data: files } = await octokit.pulls.listFiles({
       owner,
       repo,
       pull_number: prNumber
     });
 
-    // Mappa dei percorsi e relativi label
+    // Path to labels mapping
     const pathLabelMapping: { [key: string]: string[] } = {
       'plugins/': ['plugin'],
       'plugins/modules/': ['module'],
@@ -67,7 +67,7 @@ export async function getFileLabels(
       '.github/workflows/': ['github_action']
     };
 
-    // Controlla ogni file modificato
+    // Check each modified file
     files.forEach((file: PullRequestFile) => {
       const filePath = file.filename;
       

@@ -1,7 +1,7 @@
 import { Probot } from "probot";
 import app from "./app";
 
-// Esporta una funzione che accetta un'istanza di Probot
+// Export function to accept Probot istance
 export = (robot: Probot) => {
   robot.load(app);
 };

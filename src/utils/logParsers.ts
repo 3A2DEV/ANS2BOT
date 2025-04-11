@@ -19,20 +19,20 @@ function isUnitTestError(line: string): boolean {
 
 function cleanLogLine(line: string): string {
   return line
-    // Rimuovi timestamp
+    // Remove timestamp
     .replace(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+Z\s*/, '')
     
-    // Rimuovi sequenze escape ANSI e artefatti comuni
+    // Remove ANSI escape sequences and common artifacts
     .replace(/(?:\x1B|\uFFFD|\x9B)\[[0-9;]*[mK]/g, '')
     .replace(/â�|�|�\[\d+(?:;\d+)*m|�\[0m|\x00/g, '')
     
-    // Rimuovi caratteri di spunta/x
+    // Remove checkmark/x characters
     .replace(/[\u2714\u2716\u2718\u2713\u2717\u2718]/g, '')
     
-    // Rimuovi emoji
+    // Remove emoji
     .replace(/[\u{1F300}-\u{1F9FF}]/gu, '')
     
-    // Rimuovi altri caratteri problematici
+    // Remove other problematic characters
     .replace(/[â�|ð�|�]/g, '')
     .replace(/â�/g, '')
     .replace(/[\u0000-\u001F\u007F-\u009F]/g, '')
@@ -40,7 +40,7 @@ function cleanLogLine(line: string): string {
 }
 
 function isRelevantErrorLine(line: string): boolean {
-  // Linee da includere (pattern positivi)
+  // Lines to include (positive patterns)
   const relevantPatterns = [
     /^ERROR:/,
     /^FATAL:/,
@@ -48,7 +48,7 @@ function isRelevantErrorLine(line: string): boolean {
     /failed!/i
   ];
 
-  // Linee da escludere (pattern negativi)
+  // Lines to exclude (negative patterns)
   const irrelevantPatterns = [
     /^::/,
     /integration-continue-on-error/,
@@ -59,7 +59,7 @@ function isRelevantErrorLine(line: string): boolean {
     /'::error/
   ];
 
-  // Includi la linea solo se matcha un pattern rilevante e non matcha nessun pattern irrilevante
+  // Include line only if it matches a relevant pattern and doesn't match any irrelevant pattern
   return relevantPatterns.some(pattern => pattern.test(line)) && 
          !irrelevantPatterns.some(pattern => pattern.test(line));
 }
@@ -79,7 +79,7 @@ export function defaultParser(logs: string, jobName: string): ParsedError {
     
     if (!line) continue;
 
-    // Gestione speciale per test unitari
+    // Special handling for unit tests
     if (jobName.includes('Units')) {
       if (isUnitTestError(line)) {
         inErrorBlock = true;
@@ -96,7 +96,7 @@ export function defaultParser(logs: string, jobName: string): ParsedError {
       continue;
     }
 
-    // Gestione normale per altri tipi di errori
+    // Normal handling for other error types
     for (const pattern of allPatterns) {
       if (pattern.pattern.test(line)) {
         errors.push(line);
@@ -105,7 +105,7 @@ export function defaultParser(logs: string, jobName: string): ParsedError {
     }
   }
 
-  // Aggiungi l'ultimo blocco di errore se presente
+  // Add the last error block if present
   if (currentError.length > 0) {
     errors.push(currentError.join('\n'));
   }
@@ -125,10 +125,10 @@ export function ansibleIntegrationParser(logs: string, jobName: string): ParsedE
     
     if (!line) continue;
 
-    // Inizia a raccogliere l'errore quando trova il pattern "fatal: [host]: FAILED! => {"
+    // Start collecting error when finding pattern "fatal: [host]: FAILED! => {"
     if (isAnsibleIntegrationError(line)) {
       isCollectingError = true;
-      bracesCount = 1; // Prima parentesi graffa trovata
+      bracesCount = 1; // First brace found
       currentError = [line];
       continue;
     }
@@ -136,11 +136,11 @@ export function ansibleIntegrationParser(logs: string, jobName: string): ParsedE
     if (isCollectingError) {
       currentError.push(line);
       
-      // Conta le parentesi graffe per gestire JSON nidificati
+      // Count braces to handle nested JSON
       bracesCount += (line.match(/{/g) || []).length;
       bracesCount -= (line.match(/}/g) || []).length;
 
-      // Se abbiamo raggiunto lo stesso numero di parentesi aperte e chiuse
+      // If we reached the same number of open and closed braces
       if (bracesCount === 0) {
         errors.push(currentError.join('\n'));
         isCollectingError = false;
@@ -149,7 +149,7 @@ export function ansibleIntegrationParser(logs: string, jobName: string): ParsedE
     }
   }
 
-  // Se c'è un errore incompleto alla fine, aggiungilo comunque
+  // If there's an incomplete error at the end, add it anyway
   if (currentError.length > 0) {
     errors.push(currentError.join('\n'));
   }
@@ -158,7 +158,7 @@ export function ansibleIntegrationParser(logs: string, jobName: string): ParsedE
 }
 
 export function selectParser(jobName: string): (logs: string, jobName: string) => ParsedError {
-  // Usa il parser specifico per i test di integrazione
+  // Use specific parser for integration tests
   if (jobName.toLowerCase().includes('integration')) {
     return ansibleIntegrationParser;
   }

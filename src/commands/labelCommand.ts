@@ -7,14 +7,14 @@ export async function handleLabelCommand(context: Context<"issue_comment.created
   const comment = payload.comment.body;
   const issueNumber = payload.issue.number;
   
-  // Estrai il nome del label dal comando
+  // Extract label name from command
   const labelName = comment.split(' ')[1]?.trim();
   
   if (!labelName) {
     await context.octokit.issues.createComment({
       ...context.repo(),
       issue_number: issueNumber,
-      body: `⚠️ Per favore specifica un label da ${isRemoval ? 'rimuovere' : 'aggiungere'}.`
+      body: `⚠️ Please specify a label to ${isRemoval ? 'remove' : 'add'}.`
     });
     return;
   }
@@ -25,7 +25,7 @@ export async function handleLabelCommand(context: Context<"issue_comment.created
     await context.octokit.issues.createComment({
       ...context.repo(),
       issue_number: issueNumber,
-      body: `⚠️ Il label "${labelName}" non è configurato. Labels validi: ${Object.keys(config.bot.labels || {}).join(', ')}`
+      body: `⚠️ The label "${labelName}" is not configured. Valid labels: ${Object.keys(config.bot.labels || {}).join(', ')}`
     });
     return;
   }
@@ -44,13 +44,13 @@ export async function handleLabelCommand(context: Context<"issue_comment.created
         labels: [labelName]
       });
     }
-    // Rimosso il commento di conferma
+    // Removed confirmation comment
   } catch (error: any) {
-    // Manteniamo solo il commento in caso di errore
+    // Keep only error comment
     await context.octokit.issues.createComment({
       ...context.repo(),
       issue_number: issueNumber,
-      body: `❌ Errore durante ${isRemoval ? 'la rimozione' : "l'aggiunta"} del label: ${error.message}`
+      body: `❌ Error ${isRemoval ? 'removing' : 'adding'} label: ${error.message}`
     });
   }
 }

@@ -33,10 +33,10 @@ export async function findComponentMaintainer(
     const config = yaml.load(content) as BotMetaConfig;
     console.log('BOTMETA loaded:', config); // Debug log
 
-    // Normalizza il percorso e gestisci i macro
+    // Normalize path and handle macros
     let normalizedPath = componentPath.replace(/^\//, '');
     
-    // Converti il percorso in pattern con macro
+    // Convert path to pattern with macros
     for (const [macro, path] of Object.entries(config.macros)) {
       if (normalizedPath.startsWith(path)) {
         normalizedPath = normalizedPath.replace(path, `$${macro}/`);
@@ -46,16 +46,16 @@ export async function findComponentMaintainer(
     }
 
     if (config.files) {
-      // Cerca match diretti con il pattern macro
+      // Look for direct matches with macro pattern
       const exactMatch = config.files[normalizedPath];
       if (exactMatch?.maintainers) {
         console.log('Found exact match:', exactMatch); // Debug log
         return Array.isArray(exactMatch.maintainers) ? exactMatch.maintainers : [exactMatch.maintainers];
       }
 
-      // Cerca match per i pattern con $
+      // Look for matches with $ patterns
       for (const [pattern, info] of Object.entries(config.files)) {
-        // Gestisci i pattern con $ (es. $modules/charts.py)
+        // Handle patterns with $ (e.g. $modules/charts.py)
         if (pattern.includes('$')) {
           const macroName = pattern.split('/')[0].replace('$', '');
           const macroPath = config.macros[macroName];
@@ -67,7 +67,7 @@ export async function findComponentMaintainer(
             }
           }
         }
-        // Cerca match parziali nel percorso normale
+        // Look for partial matches in normal path
         else if (normalizedPath.startsWith(pattern) && info.maintainers) {
           console.log('Found partial match:', pattern, info); // Debug log
           return Array.isArray(info.maintainers) ? info.maintainers : [info.maintainers];

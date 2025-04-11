@@ -7,12 +7,12 @@ export async function handleLgtmCommand(
   context: Context<"issue_comment.created" | "pull_request_review.submitted">, 
   isReview = false
 ): Promise<void> {
-  // Inizializza le variabili con valori di default
+  // Initialize variables with default values
   let commenter: string = '';
   let prNumber: number | undefined;
 
   try {
-    // Ottieni commenter e prNumber prima di qualsiasi altra operazione
+    // Get commenter and prNumber before any other operation
     if (isReview) {
       const payload = context.payload as PullRequestReviewPayload;
       commenter = payload.review.user.login;
@@ -34,19 +34,19 @@ export async function handleLgtmCommand(
       });
     }
 
-    // 1. Recupera i dettagli della PR
+    // 1. Get PR details
     const { data: pr } = await context.octokit.pulls.get({
       ...context.repo(),
       pull_number: prNumber
     });
 
-    // 2. Recupera i file modificati nella PR
+    // 2. Get modified files in the PR
     const { data: files } = await context.octokit.pulls.listFiles({
       ...context.repo(),
       pull_number: prNumber
     });
 
-    // 3. Recupera il BOTMETA.yml
+    // 3. Get BOTMETA.yml
     const { data: botmetaFile } = await context.octokit.repos.getContent({
       ...context.repo(),
       path: '.github/BOTMETA.yml',
@@ -54,25 +54,25 @@ export async function handleLgtmCommand(
     }) as { data: { content: string } };
 
     if (!botmetaFile || !('content' in botmetaFile)) {
-      throw new Error('BOTMETA.yml non trovato o in formato non valido');
+      throw new Error('BOTMETA.yml not found or invalid format');
     }
 
     const botmetaContent = Buffer.from(botmetaFile.content, 'base64').toString();
     const botmeta = yaml.load(botmetaContent) as any;
 
-    // 4. Verifica se l'utente è un admin
+    // 4. Check if user is an admin
     const teamAdmin = botmeta.macros.team_admin || [];
     const isAdmin = Array.isArray(teamAdmin) 
       ? teamAdmin.includes(commenter)
       : teamAdmin === commenter;
 
     if (isAdmin) {
-      // Se è admin, approva direttamente
+      // If admin, approve directly
       await approveAndComment(context, prNumber, commenter, true);
       return;
     }
 
-    // 5. Verifica se l'utente è maintainer di almeno un file modificato
+    // 5. Check if user is maintainer of at least one modified file
     let isMaintainer = false;
     for (const file of files) {
       const maintainers = await findComponentMaintainer(
@@ -91,23 +91,23 @@ export async function handleLgtmCommand(
     if (isMaintainer) {
       await approveAndComment(context, prNumber, commenter, false);
     } else {
-      // Non autorizzato
+      // Not authorized
       await context.octokit.issues.createComment({
         ...context.repo(),
         issue_number: prNumber,
-        body: `❌ @${commenter} non sei autorizzato ad approvare questa PR. Solo i maintainer dei file modificati o gli admin del team possono approvarla.`
+        body: `❌ @${commenter} you are not authorized to approve this PR. Only maintainers of modified files or team admins can approve it.`
       });
     }
 
   } catch (error) {
     console.error('Error in handleLgtmCommand:', error);
     
-    // Ora TypeScript sa che prNumber potrebbe essere undefined
+    // Now TypeScript knows prNumber might be undefined
     if (typeof prNumber !== 'undefined') {
       await context.octokit.issues.createComment({
         ...context.repo(),
         issue_number: prNumber,
-        body: `❌ Errore durante l'elaborazione del comando LGTM: ${error instanceof Error ? error.message : 'errore sconosciuto'}`
+        body: `❌ Error processing LGTM command: ${error instanceof Error ? error.message : 'unknown error'}`
       });
     } else {
       console.error('PR number not available for error comment');
@@ -122,15 +122,15 @@ async function approveAndComment(
   isAdmin: boolean
 ): Promise<void> {
   try {
-    // Crea solo la review di approvazione con il messaggio
+    // Create only the approval review with message
     await context.octokit.pulls.createReview({
       ...context.repo(),
       pull_number: prNumber,
       event: 'APPROVE',
-      body: `PR approvata da @${commenter}`
+      body: `PR approved by @${commenter}`
     });
 
   } catch (error) {
-    throw new Error(`Errore durante l'approvazione: ${error instanceof Error ? error.message : 'errore sconosciuto'}`);
+    throw new Error(`Error during approval: ${error instanceof Error ? error.message : 'unknown error'}`);
   }
 }

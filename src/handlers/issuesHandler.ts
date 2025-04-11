@@ -8,7 +8,7 @@ export async function handleIssues(context: Context<"issues.opened" | "issues.ed
   const issueNumber = payload.issue.number;
 
   try {
-    // Aggiungi il label needs_triage solo per nuove issues
+    // Add needs_triage label only for new issues
     if (payload.action === "opened") {
       await context.octokit.issues.addLabels({
         ...context.repo(),
@@ -17,7 +17,7 @@ export async function handleIssues(context: Context<"issues.opened" | "issues.ed
       });
     }
 
-    // Gestione template e relativi label
+    // Handle template and related labels
     if (payload.issue.body) {
       const template = getIssueTemplate(payload.issue.body);
       if (template) {
@@ -29,7 +29,7 @@ export async function handleIssues(context: Context<"issues.opened" | "issues.ed
       }
     }
 
-    // Logica per il componente
+    // Component logic
     const componentName = extractComponentName(payload.issue.body || '');
     if (componentName) {
       const componentInfo = await findComponentFile(
@@ -40,14 +40,14 @@ export async function handleIssues(context: Context<"issues.opened" | "issues.ed
       );
 
       if (componentInfo) {
-        // Aggiungi i label specifici del componente
+        // Add component-specific labels
         await context.octokit.issues.addLabels({
           ...context.repo(),
           issue_number: issueNumber,
           labels: componentInfo.labels
         });
 
-        // Trova i maintainer del componente
+        // Find component maintainers
         const maintainers = await findComponentMaintainer(
           context.octokit,
           context.repo().owner,
@@ -55,11 +55,11 @@ export async function handleIssues(context: Context<"issues.opened" | "issues.ed
           componentInfo.filePath
         );
 
-        // Filtra il maintainer se è lo stesso utente che ha aperto l'issue
+        // Filter maintainer if it's the same user who opened the issue
         const issueAuthor = payload.issue.user.login;
         const filteredMaintainers = maintainers.filter(m => m !== issueAuthor);
 
-        // Crea il commento con il link al file e i maintainer
+        // Create comment with file link and maintainers
         const repoUrl = `https://github.com/${context.repo().owner}/${context.repo().repo}`;
         const fileUrl = `${repoUrl}/blob/main/${componentInfo.filePath}`;
         

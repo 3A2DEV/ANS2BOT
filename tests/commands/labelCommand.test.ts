@@ -1,11 +1,12 @@
 import { Context } from 'probot';
 import { handleLabelCommand } from '../../src/commands/labelCommand';
 import { loadConfig } from '../../src/utils/config';
+import { IssueCommentEvent } from '@octokit/webhooks-types';
 
 jest.mock('../../src/utils/config');
 
 describe('labelCommand', () => {
-  let context: Context;
+  let context: Context<"issue_comment.created">;
 
   beforeEach(() => {
     context = {
@@ -16,12 +17,12 @@ describe('labelCommand', () => {
       repo: () => ({ owner: 'test', repo: 'test' }),
       octokit: {
         issues: {
-          addLabels: jest.fn(),
-          removeLabel: jest.fn(),
-          createComment: jest.fn()
+          addLabels: jest.fn().mockResolvedValue({}),
+          removeLabel: jest.fn().mockResolvedValue({}),
+          createComment: jest.fn().mockResolvedValue({})
         }
       }
-    } as any;
+    } as unknown as Context<"issue_comment.created">;
 
     (loadConfig as jest.Mock).mockReturnValue({
       bot: {
@@ -32,7 +33,7 @@ describe('labelCommand', () => {
     });
   });
 
-  test('dovrebbe aggiungere un label valido', async () => {
+  test('should add a valid label', async () => {
     await handleLabelCommand(context);
 
     expect(context.octokit.issues.addLabels).toHaveBeenCalledWith({
@@ -43,7 +44,7 @@ describe('labelCommand', () => {
     });
   });
 
-  test('dovrebbe gestire label non validi', async () => {
+  test('should handle invalid labels', async () => {
     context.payload.comment.body = '/label invalid-label';
     
     await handleLabelCommand(context);

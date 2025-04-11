@@ -27,7 +27,7 @@ export = (app: Probot) => {
 
       let prNumber: number | undefined;
 
-      // Cerca di ottenere il numero della PR da diverse fonti
+      // Try to get PR number from different sources
       if (context.name === 'check_suite') {
         const checkSuite = context.payload.check_suite;
         console.log('Check Suite pull_requests:', checkSuite.pull_requests);
@@ -35,7 +35,7 @@ export = (app: Probot) => {
         if (checkSuite.pull_requests && checkSuite.pull_requests.length > 0) {
           prNumber = checkSuite.pull_requests[0].number;
         } else {
-          // Cerca di ottenere la PR dal commit
+          // Try to get PR from commit
           try {
             const { data: prs } = await context.octokit.pulls.list({
               ...context.repo(),
@@ -56,7 +56,7 @@ export = (app: Probot) => {
         if (workflowRun.pull_requests && workflowRun.pull_requests.length > 0) {
           prNumber = workflowRun.pull_requests[0].number;
         } else {
-          // Cerca di ottenere la PR dal commit
+          // Try to get PR from commit
           try {
             const { data: prs } = await context.octokit.pulls.list({
               ...context.repo(),
@@ -75,7 +75,7 @@ export = (app: Probot) => {
       console.log('Found PR number:', prNumber);
 
       if (prNumber) {
-        // Recupera dettagli della PR
+        // Get PR details
         try {
           const { data: pullRequest } = await context.octokit.pulls.get({
             ...context.repo(),
@@ -87,7 +87,7 @@ export = (app: Probot) => {
           console.log('- State:', pullRequest.state);
           console.log('- Head SHA:', pullRequest.head.sha);
 
-          // Recupera tutti i check per questa PR
+          // Get all checks for this PR
           const { data: checkRuns } = await context.octokit.checks.listForRef({
             ...context.repo(),
             ref: pullRequest.head.sha,
@@ -97,17 +97,17 @@ export = (app: Probot) => {
 
           console.log(`Found ${checkRuns.check_runs.length} check runs`);
 
-          // Verifica lo stato dei check
+          // Check the status of checks
           const hasFailures = checkRuns.check_runs.some(run => 
             ['failure', 'cancelled', 'timed_out', 'action_required'].includes(run.conclusion || '')
           );
 
-          // Gestisci i label una sola volta
+          // Handle labels only once
           try {
             const currentLabel = hasFailures ? 'needs_revision' : 'success';
             const oldLabel = hasFailures ? 'success' : 'needs_revision';
 
-            // Rimuovi il label opposto
+            // Remove opposite label
             try {
               await context.octokit.issues.removeLabel({
                 ...context.repo(),
@@ -116,10 +116,10 @@ export = (app: Probot) => {
               });
               console.log(`Removed ${oldLabel} label`);
             } catch (e) {
-              // Ignora se il label non esiste
+              // Ignore if label doesn't exist
             }
 
-            // Aggiungi il nuovo label
+            // Add new label
             await context.octokit.issues.addLabels({
               ...context.repo(),
               issue_number: prNumber,
@@ -127,7 +127,7 @@ export = (app: Probot) => {
             });
             console.log(`Added ${currentLabel} label`);
 
-            // Analizza i log solo se ci sono fallimenti
+            // Analyze logs only if there are failures
             if (hasFailures) {
               console.log('Found failures, analyzing logs...');
               await checkWorkflowRuns(
@@ -157,7 +157,7 @@ export = (app: Probot) => {
   app.on("pull_request_review", async (context: Context<"pull_request_review">) => {
     const payload = context.payload as PullRequestReviewEvent;
     
-    // Log più dettagliato per debug
+    // Detailed debug logging
     console.log('Received review event with details:', {
       event: context.name,
       action: payload.action,
@@ -167,7 +167,7 @@ export = (app: Probot) => {
       prNumber: payload.pull_request.number
     });
 
-    // Verifica tutti i requisiti necessari
+    // Check all required conditions
     if (
       payload.action === "submitted" && 
       payload.review.body?.trim().toUpperCase() === 'LGTM'

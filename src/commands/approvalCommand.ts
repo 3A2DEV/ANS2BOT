@@ -16,7 +16,7 @@ export async function handleApprovalCommand(context: Context<"issue_comment.crea
     await context.octokit.issues.createComment({
       ...context.repo(),
       issue_number: issueNumber,
-      body: `❌ Errore durante l'approvazione: ${error.message}`
+      body: `❌ Error during approval: ${error.message}`
     });
   }
 }

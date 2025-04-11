@@ -4,10 +4,10 @@ import * as dotenv from "dotenv";
 import fs from "fs";
 import path from "path";
 
-// Carica le variabili d'ambiente
+// Load environment variables
 dotenv.config();
 
-// Funzione per verificare le configurazioni
+// Function to validate configurations
 function validateConfig(): {
   appId: string;
   privateKeyPath: string;
@@ -21,11 +21,11 @@ function validateConfig(): {
 
   for (const [key, value] of Object.entries(requiredConfigs)) {
     if (!value) {
-      throw new Error(`Configurazione mancante: ${key}`);
+      throw new Error(`Missing configuration: ${key}`);
     }
   }
 
-  // Type assertion perché abbiamo già verificato che i valori non sono undefined
+  // Type assertion since we already verified values are not undefined
   return {
     appId: requiredConfigs.APP_ID as string,
     privateKeyPath: requiredConfigs.PRIVATE_KEY_PATH as string,
@@ -34,18 +34,18 @@ function validateConfig(): {
 }
 
 try {
-  // Verifica le configurazioni
+  // Verify configurations
   const config = validateConfig();
 
-  // Leggi la private key
+  // Read private key
   const privateKeyPath = path.resolve(config.privateKeyPath);
   if (!fs.existsSync(privateKeyPath)) {
-    throw new Error(`File private key non trovato: ${privateKeyPath}`);
+    throw new Error(`Private key file not found: ${privateKeyPath}`);
   }
   
   const privateKey = fs.readFileSync(privateKeyPath, "utf-8");
 
-  // Crea un'istanza di Probot con le configurazioni necessarie
+  // Create Probot instance with required configurations
   const probot = createProbot({
     defaults: {
       appId: parseInt(config.appId, 10),
@@ -54,29 +54,29 @@ try {
     }
   });
 
-  // Crea il middleware Express
+  // Create Express middleware
   const middleware = createNodeMiddleware(app, {
     probot,
     webhooksPath: "/api/github/webhooks",
   });
 
-  // Avvia il server
+  // Start server
   const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
   require("http")
     .createServer(middleware)
     .listen(port, () => {
-      console.log("🤖 ANS2BOT è in esecuzione!");
-      console.log(`🚀 Server in ascolto sulla porta ${port}`);
+      console.log("🤖 ANS2BOT is running!");
+      console.log(`🚀 Server listening on port ${port}`);
       console.log(`📦 App ID: ${config.appId}`);
       console.log(`🔑 Private Key: ${privateKeyPath}`);
-      console.log(`🔒 Webhook Secret configurato: ${Boolean(config.webhookSecret)}`);
+      console.log(`🔒 Webhook Secret configured: ${Boolean(config.webhookSecret)}`);
     });
 
 } catch (error) {
   if (error instanceof Error) {
-    console.error("❌ Errore durante l'avvio del bot:", error.message);
+    console.error("❌ Error starting bot:", error.message);
   } else {
-    console.error("❌ Errore sconosciuto durante l'avvio del bot");
+    console.error("❌ Unknown error starting bot");
   }
   process.exit(1);
 }
