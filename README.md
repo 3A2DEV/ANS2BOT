@@ -1,5 +1,8 @@
 # ANS2BOT Ansible Collections bot
 
+![collection](https://img.shields.io/badge/ansible%20collections-bot-blue?logo=ansible&logoColor=white) ![Endpoint Badge](https://img.shields.io/endpoint?url=https%3A%2F%2Fwebhook.3a2bot.com%2Fhealth&logo=dependabot)
+
+
 ANS2BOT is a GitHub bot designed to automate and streamline the management of Ansible Collections repositories. 
 
 It helps maintainers and contributors by handling common tasks like pull request reviews, issue management, and workflow checks.
